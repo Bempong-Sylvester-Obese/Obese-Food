@@ -34,8 +34,8 @@ Social sharing & leaderboard features
  ├── README.md    # Project overview
  
 💡 How to Contribute.
-1.Fork the repository
-2.Clone it: git clone https://github.com/yourusername/ObeseFood.git
-3.Create a feature branch: git checkout -b feature-name
-4.Commit changes & push: git push origin feature-name
-5.Open a Pull Request 🚀
+Fork the repository
+Clone it: git clone https://github.com/yourusername/ObeseFood.git
+Create a feature branch: git checkout -b feature-name
+Commit changes & push: git push origin feature-name
+Open a Pull Request 🚀
