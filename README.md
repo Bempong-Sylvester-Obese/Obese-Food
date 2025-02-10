@@ -33,7 +33,7 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
 
 ## 📞 Contact
 
-For any inquiries, please reach out via GitHub Issues(https://github.com/Sylvester-Bempong/ObeseFood/issues).
+For any inquiries, please reach out via GitHub Issues (https://github.com/Bempong-Sylvester-Obese/ObeseFood/issues).
 Email Address: Sylvesterobese6665@gmail.com
 
 **Obese Food aims to blend technology and nutrition to **empower users** in making healthier food choices while keeping them engaged through interactive features. Stay tuned for updates and improvements! 🎉
