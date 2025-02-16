@@ -14,7 +14,7 @@ Obese Food is a mobile application designed to revolutionize the way users track
 
 - **💻 Programming Language** - Swift (iOS Development)
 - **☁️ Backend** - Firebase (Authentication & Database Management)
-- **🤖 AI Model** - CoreML / TensorFlow Lite for food recognition
+- **🤖 AI Model** - CoreML / TensorFlow Lite and Vision for food recognition
 - **🎨 UI/UX** - Designed with SwiftUI for an intuitive user experience
 
 ## 🚀 Future Enhancements
