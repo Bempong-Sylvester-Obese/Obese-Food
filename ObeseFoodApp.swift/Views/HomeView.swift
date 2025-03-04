@@ -1,4 +1,4 @@
-import SwiftUI
+import swiftUI
 
 struct HomeView: View {
     @StateObject private var analyzer = FoodAnalyzer()
