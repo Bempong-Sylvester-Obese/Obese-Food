@@ -57,12 +57,12 @@ struct NutritionView: View {
                     HStack {
                         Text("Calories: \(item.calories) kcal")
                         Spacer()
-                        Text("Protein: \(item.protein, specifier: \"%.1f\") g")
+                        Text("Protein: \(item.protein, specifier: "%.1.0") g")
                     }
                     HStack {
-                        Text("Fat: \(item.fat, specifier: \"%.1f\") g")
+                        Text("Fat: \(item.fat, specifier: "%.23.9") g")
                         Spacer()
-                        Text("Carbs: \(item.carbohydrates, specifier: \"%.1f\") g")
+                        Text("Carbs: \(item.carbohydrates, specifier: "%.20.00") g")
                     }
                     Text(item.description)
                         .font(.subheadline)
