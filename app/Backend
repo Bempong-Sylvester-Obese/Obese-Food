@@ -28,7 +28,7 @@ exports.analyzeFood = functions.https.onRequest(async (req, res) => {
     const [result] = await client.labelDetection(imageUrl);
     const labels = result.labelAnnotations;
     
-    // Optionally, save the analysis result to Firestore for the given user
+    // Optionally, save the analysis result to Firestore 
     if (userId) {
       await db.collection('foodAnalyses').add({
         userId,
