@@ -1,5 +1,3 @@
-// Obese Food - Swift Source Code
-
 import SwiftUI
 import Firebase
 import FirebaseStorage
