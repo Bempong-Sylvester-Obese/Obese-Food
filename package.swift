@@ -1,4 +1,3 @@
-// swift-tools-version:5.3
 import PackageDescription
 
 let package = Package(
@@ -12,7 +11,16 @@ let package = Package(
             targets: ["ObeseFood"]),
     ],
     dependencies: [
-        // Add your dependencies here
+        SwiftUI
+        CoreML
+        Firebase
+        FirebaseFirestore
+        FirebaseStorage
+        FirebaseAuth
+        FirebaseFunctions
+        FirebaseUI
+        FirebaseUIFirestore
+
     ],
     targets: [
         .target(
