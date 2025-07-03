@@ -12,7 +12,7 @@ Obese Food is a mobile application designed to revolutionize the way users track
 
 ## 🛠️ Technology Stack
 
-- **💻 Programming Language** - Swift (iOS Development)
+- **💻 Programming Language** - Swift (iOS Development), Javascript
 - **☁️ Backend** - Firebase (Authentication & Database Management)
 - **🤖 AI Model** - CoreML / TensorFlow Lite and Vision for food recognition
 - **🎨 UI/UX** - Designed with SwiftUI for an intuitive user experience
@@ -30,11 +30,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to open an issue or submit a pull request.
-
-## 📞 Contact
-
-For any inquiries, please reach out via GitHub Issues.
-Email Address: Sylvesterobese6665@gmail.com
 
 **Obese Food aims to blend technology and nutrition to **empower users** in making healthier food choices while keeping them engaged through interactive features. Stay tuned for updates and improvements! 🎉
 
