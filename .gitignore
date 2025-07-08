@@ -4,6 +4,10 @@
 
 ## User settings
 xcuserdata/
+DerivedData/
+*.xcuserstate
+*.xcworkspace
+*.xcodeproj/project.xcworkspace/xcuserdata/
 
 ## Obj-C/Swift specific
 *.hmap
@@ -30,6 +34,7 @@ playground.xcworkspace
 # .swiftpm
 
 .build/
+Package.resolved
 
 # CocoaPods
 #
@@ -60,3 +65,12 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Sensitive files
+firebase/Googleservice-Info.plist
+
+# Logs
+*.log
+
+# Local environment/config files
+.env

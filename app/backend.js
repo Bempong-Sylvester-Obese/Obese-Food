@@ -8,7 +8,6 @@ const client = new vision.ImageAnnotatorClient();
 
 // HTTP function to analyze a food image
 exports.analyzeFood = functions.https.onRequest(async (req, res) => {
-  // Allow only POST requests
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
     return;
@@ -22,7 +21,7 @@ exports.analyzeFood = functions.https.onRequest(async (req, res) => {
   }
   
   try {
-    // Use the Vision API to detect labels on the image
+    // Use Vision API to detect labels on the image
     const [result] = await client.labelDetection(imageUrl);
     const labels = result.labelAnnotations;
     
