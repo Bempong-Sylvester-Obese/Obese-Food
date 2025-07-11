@@ -65,7 +65,7 @@ ObeseFood/
 ### Installation
 1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/Obese-Food.git
+   git clone https://github.com/Bempong-Sylvester-Obese/Obese-Food.git
    cd Obese-Food
    ```
 
