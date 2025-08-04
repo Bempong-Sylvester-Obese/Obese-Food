@@ -142,16 +142,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Firebase** for backend services
-- **Apple** for CoreML and Vision frameworks
-- **Google Cloud** for Vision API
-- **SwiftUI** for modern UI development
-
 ---
-
 <div align="center">
 
 **Made with ❤️ for healthier eating habits**
