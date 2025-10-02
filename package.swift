@@ -11,21 +11,17 @@ let package = Package(
             targets: ["ObeseFood"]),
     ],
     dependencies: [
-        SwiftUI
-        CoreML
-        Firebase
-        FirebaseFirestore
-        FirebaseStorage
-        FirebaseAuth
-        FirebaseFunctions
-        FirebaseUI
-        FirebaseUIFirestore
-
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "10.0.0"),
     ],
     targets: [
         .target(
             name: "ObeseFood",
-            dependencies: []),
+            dependencies: [
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseStorage", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseFunctions", package: "firebase-ios-sdk"),
+            ]),
         .testTarget(
             name: "ObeseFoodTests",
             dependencies: ["ObeseFood"]),
