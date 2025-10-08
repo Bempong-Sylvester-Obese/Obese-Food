@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import FirebaseFirestore
 
 class GamificationManager: ObservableObject {
     @Published var oexPoints: Int = 0
@@ -9,12 +10,19 @@ class GamificationManager: ObservableObject {
     @Published var weeklyGoal: Int = 0
     @Published var weeklyProgress: Int = 0
     
+    private let db = Firestore.firestore()
+    private var errorHandler: ErrorHandler?
+    
     private let pointsPerFoodScan = 10
     private let pointsPerHealthyMeal = 25
     private let pointsPerDailyGoal = 50
     
     init() {
         loadUserProgress()
+    }
+    
+    func setErrorHandler(_ errorHandler: ErrorHandler) {
+        self.errorHandler = errorHandler
     }
     
     // MARK: - Points Management
@@ -142,8 +150,54 @@ class GamificationManager: ObservableObject {
             weeklyProgress: weeklyProgress
         )
         
+        // Save locally
         if let encoded = try? JSONEncoder().encode(progress) {
             UserDefaults.standard.set(encoded, forKey: "user_progress")
+        }
+        
+        // Sync to Firebase
+        syncToFirebase(progress)
+    }
+    
+    private func syncToFirebase(_ progress: UserProgress) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        
+        do {
+            try db.collection("userProgress").document(userId).setData(from: progress)
+        } catch {
+            errorHandler?.handle(.firebaseError("Failed to sync gamification progress: \(error.localizedDescription)"))
+        }
+    }
+    
+    func loadFromFirebase() {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        
+        db.collection("userProgress").document(userId).getDocument { [weak self] document, error in
+            if let error = error {
+                self?.errorHandler?.handle(.firebaseError("Failed to load gamification progress: \(error.localizedDescription)"))
+                return
+            }
+            
+            if let document = document, document.exists {
+                do {
+                    let progress = try document.data(as: UserProgress.self)
+                    DispatchQueue.main.async {
+                        self?.oexPoints = progress.oexPoints
+                        self?.currentLevel = progress.currentLevel
+                        self?.achievements = progress.achievements
+                        self?.dailyStreak = progress.dailyStreak
+                        self?.weeklyGoal = progress.weeklyGoal
+                        self?.weeklyProgress = progress.weeklyProgress
+                        
+                        // Save locally as well
+                        if let encoded = try? JSONEncoder().encode(progress) {
+                            UserDefaults.standard.set(encoded, forKey: "user_progress")
+                        }
+                    }
+                } catch {
+                    self?.errorHandler?.handle(.firebaseError("Failed to decode gamification progress: \(error.localizedDescription)"))
+                }
+            }
         }
     }
     

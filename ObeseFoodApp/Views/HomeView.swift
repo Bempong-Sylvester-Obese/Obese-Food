@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject private var analyzer = FoodAnalyzer()
-    @StateObject private var gamificationManager = GamificationManager()
+    @EnvironmentObject var analyzer: FoodAnalyzer
+    @EnvironmentObject var gamificationManager: GamificationManager
+    @EnvironmentObject var dataManager: DataManager
     @State private var selectedImage: UIImage?
     @State private var showImagePicker = false
     
@@ -81,6 +82,9 @@ struct HomeView: View {
                                 analyzer.analyzeFood(image: image)
                                 // Award points for food scan
                                 gamificationManager.awardPointsForFoodScan()
+                                
+                                // Save food scan to history
+                                saveFoodScan(image: image)
                             }
                         }) {
                             HStack {
@@ -112,6 +116,18 @@ struct HomeView: View {
                 ImagePicker(image: $selectedImage)
             }
         }
+    }
+    
+    private func saveFoodScan(image: UIImage) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        
+        let foodScan = FoodScan(
+            userId: userId,
+            foodName: analyzer.detectedFood,
+            confidence: analyzer.confidence
+        )
+        
+        dataManager.addFoodScan(foodScan)
     }
 }
 

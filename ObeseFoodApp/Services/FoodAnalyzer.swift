@@ -16,12 +16,10 @@ class FoodAnalyzer: ObservableObject {
     }
     
     private func setupModel() {
-        // For now, we'll use a placeholder model
-        // In a real implementation, load trained CoreML model here
+        // Load the mock food recognition model
         do {
-            // This is a placeholder - replace this with actual model
-            // let model = try VNCoreMLModel(for: YourFoodRecognitionModel().model)
-            // self.coreMLModel = model
+            let foodModel = FoodRecognitionModel()
+            self.coreMLModel = try VNCoreMLModel(for: foodModel.model)
         } catch {
             print("Failed to load CoreML model: \(error)")
         }
@@ -36,10 +34,14 @@ class FoodAnalyzer: ObservableObject {
         isAnalyzing = true
         predictionResult = "Analyzing..."
         
-        // For now, we'll simulate the analysis
-        // In a real implementation, use the CoreML model
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.simulateAnalysis()
+        // Use the mock CoreML model for now
+        if let model = coreMLModel {
+            analyzeWithCoreML(image: image)
+        } else {
+            // Fallback to simulation if model fails
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                self.simulateAnalysis()
+            }
         }
     }
     

@@ -9,10 +9,16 @@ class AuthenticationManager: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
+    private var errorHandler: ErrorHandler?
+    
     private var cancellables = Set<AnyCancellable>()
     
     init() {
         checkAuthenticationStatus()
+    }
+    
+    func setErrorHandler(_ errorHandler: ErrorHandler) {
+        self.errorHandler = errorHandler
     }
     
     private func checkAuthenticationStatus() {
@@ -33,8 +39,10 @@ class AuthenticationManager: ObservableObject {
                 self?.isLoading = false
                 if let error = error {
                     self?.errorMessage = error.localizedDescription
+                    self?.errorHandler?.handle(.authenticationError(error.localizedDescription))
                 } else {
                     self?.isAuthenticated = true
+                    self?.errorMessage = nil
                 }
             }
         }
@@ -49,16 +57,21 @@ class AuthenticationManager: ObservableObject {
                 self?.isLoading = false
                 if let error = error {
                     self?.errorMessage = error.localizedDescription
+                    self?.errorHandler?.handle(.authenticationError(error.localizedDescription))
                 } else {
                     // Update user profile with name
                     if let user = result?.user {
                         let changeRequest = user.createProfileChangeRequest()
                         changeRequest.displayName = name
                         changeRequest.commitChanges { error in
-                            if let error = error {
-                                self?.errorMessage = error.localizedDescription
-                            } else {
-                                self?.isAuthenticated = true
+                            DispatchQueue.main.async {
+                                if let error = error {
+                                    self?.errorMessage = error.localizedDescription
+                                    self?.errorHandler?.handle(.authenticationError(error.localizedDescription))
+                                } else {
+                                    self?.isAuthenticated = true
+                                    self?.errorMessage = nil
+                                }
                             }
                         }
                     }
@@ -74,6 +87,7 @@ class AuthenticationManager: ObservableObject {
             currentUser = nil
         } catch {
             errorMessage = error.localizedDescription
+            errorHandler?.handle(.authenticationError(error.localizedDescription))
         }
     }
     
@@ -82,6 +96,7 @@ class AuthenticationManager: ObservableObject {
             DispatchQueue.main.async {
                 if let error = error {
                     self?.errorMessage = error.localizedDescription
+                    self?.errorHandler?.handle(.authenticationError(error.localizedDescription))
                 } else {
                     self?.errorMessage = "Password reset email sent"
                 }

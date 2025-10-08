@@ -2,9 +2,14 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var authManager: AuthenticationManager
-    @StateObject private var gamificationManager = GamificationManager()
+    @EnvironmentObject var gamificationManager: GamificationManager
+    @EnvironmentObject var dataManager: DataManager
     @State private var profileImage: UIImage? = UIImage(systemName: "person.circle.fill")
     @State private var showImagePicker = false
+    @State private var showEditProfile = false
+    @State private var showNutritionGoals = false
+    @State private var showAchievements = false
+    @State private var showSettings = false
     
     var body: some View {
         NavigationView {
@@ -69,10 +74,18 @@ struct ProfileView: View {
                 
                 // Profile Options
                 VStack(spacing: 12) {
-                    ProfileOptionRow(icon: "person.circle", title: "Edit Profile", action: {})
-                    ProfileOptionRow(icon: "chart.bar", title: "Nutrition Goals", action: {})
-                    ProfileOptionRow(icon: "trophy", title: "Achievements", action: {})
-                    ProfileOptionRow(icon: "gear", title: "Settings", action: {})
+                    ProfileOptionRow(icon: "person.circle", title: "Edit Profile", action: {
+                        showEditProfile = true
+                    })
+                    ProfileOptionRow(icon: "chart.bar", title: "Nutrition Goals", action: {
+                        showNutritionGoals = true
+                    })
+                    ProfileOptionRow(icon: "trophy", title: "Achievements", action: {
+                        showAchievements = true
+                    })
+                    ProfileOptionRow(icon: "gear", title: "Settings", action: {
+                        showSettings = true
+                    })
                 }
                 .padding(.horizontal)
                 
@@ -99,6 +112,18 @@ struct ProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showImagePicker) {
                 ImagePicker(image: $profileImage)
+            }
+            .sheet(isPresented: $showEditProfile) {
+                EditProfileView()
+            }
+            .sheet(isPresented: $showNutritionGoals) {
+                NutritionGoalsView()
+            }
+            .sheet(isPresented: $showAchievements) {
+                AchievementsView()
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
             }
         }
     }
