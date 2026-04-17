@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NutritionGoalsView: View {
     @EnvironmentObject var dataManager: DataManager
+    @EnvironmentObject var authManager: AuthenticationManager
     @Environment(\.presentationMode) var presentationMode
     
     @State private var dailyCalorieGoal: String = "2000"
@@ -75,12 +76,12 @@ struct NutritionGoalsView: View {
     }
     
     private func saveGoals() {
-        guard let userId = Auth.auth().currentUser?.uid,
+        guard let userId = authManager.currentUser?.uid,
               let userEmail = authManager.currentUser?.email else { return }
         
         let updatedProfile = UserProfile(
             id: userId,
-            name: dataManager.userProfile?.name ?? "",
+            name: dataManager.userProfile?.name ?? authManager.currentUser?.displayName ?? "Obese Food User",
             email: userEmail,
             age: dataManager.userProfile?.age,
             weight: dataManager.userProfile?.weight,
@@ -104,5 +105,6 @@ struct NutritionGoalsView_Previews: PreviewProvider {
     static var previews: some View {
         NutritionGoalsView()
             .environmentObject(DataManager())
+            .environmentObject(AuthenticationManager())
     }
 }

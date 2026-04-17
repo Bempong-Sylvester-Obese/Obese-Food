@@ -1,30 +1,31 @@
-ObeseFood/
-│── README.md               # Project description and setup guide
-│── .gitignore              # Ignore unnecessary files in Git
-│── LICENSE                 # License for the project
-│── docs/                   # Documentation folder
-│   └── architecture.md      # Explanation of the project structure
-│── app/                    # Swift iOS app source code
-│   ├── ObeseFoodApp.swift   # Main app entry point
-│   ├── Views/               # UI components
-│   │   ├── HomeView.swift
-│   │   ├── ProfileView.swift
-│   │   ├── NutritionView.swift
-│   ├── Models/              # Data models
-│   │   ├── FoodModel.swift
-│   │   ├── UserModel.swift
-│   ├── Services/            # Firebase and AI services
-│   │   ├── FirebaseService.swift
-│   │   ├── AIRecognition.swift
-│── firebase/                # Firebase configuration
-│   ├── GoogleService-Info.plist # Firebase iOS config file
-│── assets/                  # Images, icons, and design resources
-│   ├── logo.png
-│   ├── food_samples/
-│── scripts/                 # Utility scripts (if needed)
-│   ├── database_setup.py    # Script to initialize Firestore DB
-│── tests/                   # Unit tests
-│   ├── ObeseFoodTests.swift
-│── .vscode/                 # VS Code settings (optional)
-│── .xcodeproj/              # Xcode project files
-└── .xcworkspace/            # Xcode workspace files
+Obese-Food/
+│── README.md
+│── CONTRIBUTING.md
+│── LICENSE
+│── .gitignore
+│── firebase.json
+│── firestore.rules
+│── firestore.indexes.json
+│── docs/
+│   ├── SETUP.md
+│   ├── NEXT_STEPS.md
+│   └── architecture.md
+│── scripts/
+│   └── generate_baseline_food_model.py
+│── ObeseFoodApp/
+│   ├── ObeseFoodApp.swift
+│   ├── ContentView.swift
+│   ├── Info.plist
+│   ├── GoogleService-Info.sample.plist
+│   ├── BaselineFoodClassifier.mlmodel
+│   ├── Models/
+│   ├── Services/
+│   ├── Views/
+│   ├── Components/
+│   └── Assets.xcassets/
+│── ObeseFoodAppTests/
+│   ├── FoodCatalogTests.swift
+│   └── GamificationManagerTests.swift
+│── ObeseFoodApp.xcodeproj/
+└── .github/workflows/
+    └── ios.yml

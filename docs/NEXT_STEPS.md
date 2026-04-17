@@ -1,212 +1,75 @@
-# 🚀 Obese Food App - Next Steps Guide
+# Obese Food Next Steps
 
-## 🎯 **Immediate Action Items (Do These First)**
+This file tracks the most useful work after the MVP recovery pass.
 
-### **1. Create Xcode Project (CRITICAL)**
-You currently have Swift files but no proper Xcode project. Here's what you need to do:
+## Immediate Next Steps
 
-#### **Option A: Create New Xcode Project (Recommended)**
-1. **Open Xcode**
-2. **Create New Project** → iOS → App
-3. **Project Name**: `ObeseFoodApp`
-4. **Bundle Identifier**: `com.obesefood.app`
-5. **Language**: Swift
-6. **Interface**: SwiftUI
-7. **Minimum iOS**: 13.0
+### 1. Replace the baseline classifier with a real meal dataset
 
-#### **Option B: Use Existing Files**
-1. **Open Terminal** in your project directory
-2. **Run**: `open ObeseFoodApp.xcodeproj` (if it exists)
-3. **Add all Swift files** to the project manually
+The current CoreML model is good enough for a supported-dish MVP, but the next step is to train on real food images instead of synthetic feature centroids.
 
-### **2. Add Firebase Configuration**
-1. **Download** `GoogleService-Info.plist` from Firebase Console
-2. **Replace** the placeholder file in `firebase/GoogleService-Info.plist`
-3. **Drag the file** into your Xcode project
-4. **Ensure** it's added to the target
+Recommended path:
 
-### **3. Add Swift Package Dependencies**
-1. **File** → **Add Package Dependencies**
-2. **URL**: `https://github.com/firebase/firebase-ios-sdk.git`
-3. **Add these products**:
-   - FirebaseAuth
-   - FirebaseFirestore
-   - FirebaseStorage
-   - FirebaseFunctions
+1. Collect real training images for the current supported dishes
+2. Add an `Unknown` / `Other` class with real non-matching food images
+3. Retrain the model and regenerate `BaselineFoodClassifier.mlmodel`
+4. Measure precision and recall on held-out meal photos
 
-## 🔧 **Fix Import Issues (Priority 2)**
+### 2. Add camera capture
 
-### **Current Problems to Fix:**
-- Missing imports in AuthenticationManager
-- Views not finding components
-- Model dependencies not resolved
+The app currently uses photo-library selection only. A natural next step is:
 
-### **Files That Need Import Fixes:**
-1. **AuthenticationManager.swift** - Add Firebase imports
-2. **All Views** - Add proper import statements
-3. **Services** - Ensure they're accessible
+- camera capture
+- photo retake flow
+- better empty and permission states
 
-## 🤖 **Implement Real AI (Priority 3)**
+### 3. Persist profile images properly
 
-### **Current State**: Using simulation
-### **What You Need**:
+The profile avatar interaction was intentionally trimmed back for the MVP because there is no storage pipeline yet.
 
-#### **Option A: CoreML Model (Recommended)**
-1. **Train a food recognition model** using Create ML
-2. **Dataset**: Collect 1000+ food images (especially Ghanaian cuisine)
-3. **Integration**: Replace simulation in `FoodAnalyzer.swift`
+To add it back:
 
-#### **Option B: Google Vision API (Easier)**
-1. **Get Google Cloud API key**
-2. **Implement Vision API calls** in `FoodAnalyzer.swift`
-3. **Add fallback** for when CoreML fails
+1. Upload profile images to Firebase Storage
+2. Save the download URL on `userProfiles/{userId}`
+3. Cache the image locally for faster profile loads
 
-#### **Option C: Third-party API**
-- **Clarifai Food API**
-- **Microsoft Computer Vision**
-- **AWS Rekognition**
+### 4. Expand nutrition coverage
 
-## 📊 **Data Persistence (Priority 4)**
+Current nutrition values are static estimates in `FoodCatalog`.
 
-### **Current State**: Only UserDefaults for gamification
-### **What You Need**:
+Good next additions:
 
-#### **1. CoreData Integration**
-- **Local storage** for offline access
-- **Sync with Firebase** when online
-- **Data migration** for app updates
+- serving-size adjustments
+- richer micronutrient data
+- local nutrition lookup by portion size
+- optional API enrichment for foods outside the supported dish list
 
-#### **2. Firebase Firestore**
-- **User profiles** and preferences
-- **Food scan history**
-- **Nutrition data**
-- **Achievement progress**
+## Product Hardening
 
-## 🎮 **Enhanced Gamification (Priority 5)**
+### Firebase
 
-### **Current State**: Basic points system
-### **What You Need**:
+- Add staging and production Firebase projects
+- Store environment-specific plist files securely
+- Add App Check if the app moves beyond internal/demo use
 
-#### **1. Social Features**
-- **Leaderboards**
-- **Friend challenges**
-- **Community achievements**
+### Testing
 
-#### **2. Advanced Rewards**
-- **Real rewards** for points
-- **Discounts** at partner restaurants
-- **Health coaching** sessions
+- Add unit tests for `FoodAnalyzer` feature extraction
+- Add tests for `DataManager` profile seeding and sync behavior
+- Add UI tests for auth, scan, and save-to-history flow
 
-## 🧪 **Testing & Quality (Priority 6)**
+### UX
 
-### **What You Need**:
+- Add onboarding for supported dishes and confidence handling
+- Improve accessibility labels and dynamic type support
+- Add clearer success toasts after saving a scan
 
-#### **1. Unit Tests**
-- **Authentication flow**
-- **Food recognition accuracy**
-- **Gamification logic**
+## Release Prep
 
-#### **2. UI Tests**
-- **User registration**
-- **Food scanning flow**
-- **Profile management**
+Before TestFlight or App Store distribution:
 
-#### **3. Performance Testing**
-- **Image processing speed**
-- **Memory usage**
-- **Battery optimization**
-
-## 🚀 **Deployment Preparation (Priority 7)**
-
-### **App Store Requirements**:
-
-#### **1. App Store Connect**
-- **App information** and metadata
-- **Screenshots** for all device sizes
-- **App description** and keywords
-- **Privacy policy** and terms
-
-#### **2. Firebase Production**
-- **Production Firebase project**
-- **Security rules** for Firestore
-- **Analytics** and Crashlytics setup
-
-#### **3. Beta Testing**
-- **TestFlight** distribution
-- **Beta tester feedback**
-- **Bug fixes** and improvements
-
-## 📱 **Immediate Next Steps (This Week)**
-
-### **Day 1-2: Project Setup**
-1. ✅ Create Xcode project
-2. ✅ Add Firebase configuration
-3. ✅ Fix import issues
-4. ✅ Test basic app functionality
-
-### **Day 3-4: Core Features**
-1. ✅ Implement real food recognition
-2. ✅ Add data persistence
-3. ✅ Test authentication flow
-4. ✅ Verify gamification system
-
-### **Day 5-7: Polish & Testing**
-1. ✅ Add error handling
-2. ✅ Optimize performance
-3. ✅ Test on device
-4. ✅ Prepare for beta testing
-
-## 🛠️ **Technical Debt to Address**
-
-### **Code Quality Issues**:
-- [ ] Add proper error handling throughout
-- [ ] Implement loading states
-- [ ] Add input validation
-- [ ] Optimize image processing
-
-### **Architecture Improvements**:
-- [ ] Implement MVVM pattern properly
-- [ ] Add dependency injection
-- [ ] Create proper data layer
-- [ ] Add offline support
-
-### **User Experience**:
-- [ ] Add onboarding flow
-- [ ] Improve accessibility
-- [ ] Add haptic feedback
-- [ ] Optimize for different screen sizes
-
-## 🎯 **Success Metrics**
-
-### **Technical Goals**:
-- [ ] App builds without errors
-- [ ] All features work on device
-- [ ] Firebase integration complete
-- [ ] Real AI recognition working
-
-### **User Experience Goals**:
-- [ ] Smooth onboarding
-- [ ] Fast food recognition
-- [ ] Engaging gamification
-- [ ] Intuitive navigation
-
-## 🆘 **Getting Help**
-
-### **If You Get Stuck**:
-1. **Check Xcode console** for build errors
-2. **Verify Firebase configuration**
-3. **Test on physical device** (camera features)
-4. **Check Apple Developer documentation**
-
-### **Resources**:
-- **Firebase Documentation**: https://firebase.google.com/docs
-- **SwiftUI Documentation**: https://developer.apple.com/documentation/swiftui
-- **CoreML Documentation**: https://developer.apple.com/documentation/coreml
-
----
-
-## 🎉 **You're Ready to Build!**
-
-Your app has a solid foundation. Focus on the immediate steps first, then gradually work through the priorities. The most important thing is to get the Xcode project working first!
-
-**Next Action**: Open Xcode and create a new project, then we can move forward with the implementation.
+1. Replace placeholder Firebase config locally with a real project
+2. Train and validate a real meal classifier
+3. Add a privacy policy and terms links
+4. Run the GitHub Actions workflow successfully
+5. Verify sign-in, scan, history, and profile flows on device

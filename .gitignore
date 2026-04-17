@@ -65,6 +65,7 @@ Temporary Items
 # IDEs
 .vscode/
 .idea/
+.venv-modelgen/
 *.swp
 *.swo
 *~

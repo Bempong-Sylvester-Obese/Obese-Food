@@ -1,70 +1,113 @@
-import Foundation
+import FirebaseAuth
+import FirebaseCore
 import FirebaseFirestore
 import FirebaseFirestoreSwift
-import Combine
+import Foundation
 
 /// Centralized data management for the Obese Food app
 /// Handles both local storage and Firebase synchronization
-class DataManager: ObservableObject {
+final class DataManager: ObservableObject {
     @Published var userProfile: UserProfile?
     @Published var foodScanHistory: [FoodScan] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
-    
-    private let db = Firestore.firestore()
-    private var cancellables = Set<AnyCancellable>()
+
     private var errorHandler: ErrorHandler?
-    
+    private var currentUserID: String?
+    private var currentUserName: String?
+    private var currentUserEmail: String?
+
     // Local storage keys
     private let userProfileKey = "user_profile"
     private let foodHistoryKey = "food_scan_history"
-    
-    init() {
-        loadLocalData()
+    private var db: Firestore? {
+        FirebaseApp.app() == nil ? nil : Firestore.firestore()
     }
-    
+
+    init() {
+        if FirebaseApp.app() != nil, let currentUser = Auth.auth().currentUser {
+            handleAuthStateChange(
+                userID: currentUser.uid,
+                displayName: currentUser.displayName,
+                email: currentUser.email,
+                shouldAutoSync: AppSettings.autoSyncEnabled
+            )
+        }
+    }
+
     func setErrorHandler(_ errorHandler: ErrorHandler) {
         self.errorHandler = errorHandler
     }
-    
+
+    func handleAuthStateChange(
+        userID: String?,
+        displayName: String?,
+        email: String?,
+        shouldAutoSync: Bool
+    ) {
+        currentUserID = userID
+        currentUserName = displayName
+        currentUserEmail = email
+
+        guard let userID else {
+            clearPublishedState()
+            return
+        }
+
+        loadLocalData(for: userID)
+        ensureLocalProfileSeed(for: userID, displayName: displayName, email: email)
+
+        if shouldAutoSync {
+            syncAllData()
+        }
+    }
+
     // MARK: - User Profile Management
-    
+
     func saveUserProfile(_ profile: UserProfile) {
         userProfile = profile
         saveLocalUserProfile(profile)
-        syncUserProfileToFirebase(profile)
-    }
-    
-    private func saveLocalUserProfile(_ profile: UserProfile) {
-        if let encoded = try? JSONEncoder().encode(profile) {
-            UserDefaults.standard.set(encoded, forKey: userProfileKey)
+        if currentUserID != nil {
+            syncUserProfileToFirebase(profile)
         }
     }
-    
-    private func loadLocalUserProfile() -> UserProfile? {
-        guard let data = UserDefaults.standard.data(forKey: userProfileKey) else { return nil }
+
+    private func saveLocalUserProfile(_ profile: UserProfile) {
+        if let encoded = try? JSONEncoder().encode(profile) {
+            UserDefaults.standard.set(encoded, forKey: storageKey(for: userProfileKey, userID: profile.id))
+        }
+    }
+
+    private func loadLocalUserProfile(for userID: String) -> UserProfile? {
+        guard let data = UserDefaults.standard.data(forKey: storageKey(for: userProfileKey, userID: userID)) else { return nil }
         return try? JSONDecoder().decode(UserProfile.self, from: data)
     }
-    
+
     private func syncUserProfileToFirebase(_ profile: UserProfile) {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        
+        guard let db else { return }
         do {
-            try db.collection("userProfiles").document(userId).setData(from: profile)
+            try db.collection("userProfiles").document(profile.id).setData(from: profile)
         } catch {
             errorHandler?.handle(.firebaseError("Failed to sync user profile: \(error.localizedDescription)"))
         }
     }
-    
+
     func loadUserProfileFromFirebase() {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        
-        db.collection("userProfiles").document(userId).getDocument { [weak self] document, error in
+        guard let userID = currentUserID, let db else { return }
+
+        isLoading = true
+        db.collection("userProfiles").document(userID).getDocument { [weak self] document, error in
+            defer {
+                DispatchQueue.main.async {
+                    self?.isLoading = false
+                }
+            }
+
             if let error = error {
                 self?.errorHandler?.handle(.firebaseError("Failed to load user profile: \(error.localizedDescription)"))
                 return
             }
-            
+
             if let document = document, document.exists {
                 do {
                     let profile = try document.data(as: UserProfile.self)
@@ -75,82 +118,127 @@ class DataManager: ObservableObject {
                 } catch {
                     self?.errorHandler?.handle(.firebaseError("Failed to decode user profile: \(error.localizedDescription)"))
                 }
+            } else if let profile = self?.makeDefaultProfile(for: userID) {
+                DispatchQueue.main.async {
+                    self?.saveUserProfile(profile)
+                }
             }
         }
     }
-    
+
     // MARK: - Food Scan History
-    
+
     func addFoodScan(_ scan: FoodScan) {
         foodScanHistory.insert(scan, at: 0) // Add to beginning
         saveLocalFoodHistory()
-        syncFoodScanToFirebase(scan)
-    }
-    
-    private func saveLocalFoodHistory() {
-        if let encoded = try? JSONEncoder().encode(foodScanHistory) {
-            UserDefaults.standard.set(encoded, forKey: foodHistoryKey)
+        if currentUserID != nil {
+            syncFoodScanToFirebase(scan)
         }
     }
-    
-    private func loadLocalFoodHistory() -> [FoodScan] {
-        guard let data = UserDefaults.standard.data(forKey: foodHistoryKey) else { return [] }
+
+    private func saveLocalFoodHistory() {
+        if let encoded = try? JSONEncoder().encode(foodScanHistory) {
+            UserDefaults.standard.set(encoded, forKey: storageKey(for: foodHistoryKey, userID: currentUserID))
+        }
+    }
+
+    private func loadLocalFoodHistory(for userID: String) -> [FoodScan] {
+        guard let data = UserDefaults.standard.data(forKey: storageKey(for: foodHistoryKey, userID: userID)) else { return [] }
         return (try? JSONDecoder().decode([FoodScan].self, from: data)) ?? []
     }
-    
+
     private func syncFoodScanToFirebase(_ scan: FoodScan) {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        
+        guard let db else { return }
         do {
             try db.collection("foodScans").document(scan.id).setData(from: scan)
         } catch {
             errorHandler?.handle(.firebaseError("Failed to sync food scan: \(error.localizedDescription)"))
         }
     }
-    
+
     func loadFoodScanHistoryFromFirebase() {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        
+        guard let userID = currentUserID, let db else { return }
+
+        isLoading = true
         db.collection("foodScans")
-            .whereField("userId", isEqualTo: userId)
+            .whereField("userId", isEqualTo: userID)
             .order(by: "timestamp", descending: true)
             .limit(to: 50)
             .getDocuments { [weak self] snapshot, error in
+                defer {
+                    DispatchQueue.main.async {
+                        self?.isLoading = false
+                    }
+                }
+
                 if let error = error {
                     self?.errorHandler?.handle(.firebaseError("Failed to load food history: \(error.localizedDescription)"))
                     return
                 }
-                
+
                 let scans = snapshot?.documents.compactMap { document in
                     try? document.data(as: FoodScan.self)
                 } ?? []
-                
+
                 DispatchQueue.main.async {
                     self?.foodScanHistory = scans
                     self?.saveLocalFoodHistory()
                 }
             }
     }
-    
+
     // MARK: - Local Data Loading
-    
-    private func loadLocalData() {
-        userProfile = loadLocalUserProfile()
-        foodScanHistory = loadLocalFoodHistory()
+
+    private func loadLocalData(for userID: String) {
+        userProfile = loadLocalUserProfile(for: userID)
+        foodScanHistory = loadLocalFoodHistory(for: userID)
     }
-    
+
     // MARK: - Data Sync
-    
+
     func syncAllData() {
+        guard currentUserID != nil else { return }
         loadUserProfileFromFirebase()
         loadFoodScanHistoryFromFirebase()
     }
-    
+
     func clearLocalData() {
-        UserDefaults.standard.removeObject(forKey: userProfileKey)
-        UserDefaults.standard.removeObject(forKey: foodHistoryKey)
+        UserDefaults.standard.removeObject(forKey: storageKey(for: userProfileKey, userID: currentUserID))
+        UserDefaults.standard.removeObject(forKey: storageKey(for: foodHistoryKey, userID: currentUserID))
         userProfile = nil
         foodScanHistory = []
+    }
+
+    private func ensureLocalProfileSeed(for userID: String, displayName: String?, email: String?) {
+        guard userProfile == nil, let profile = makeDefaultProfile(for: userID, displayName: displayName, email: email) else {
+            return
+        }
+
+        userProfile = profile
+        saveLocalUserProfile(profile)
+    }
+
+    private func makeDefaultProfile(for userID: String, displayName: String? = nil, email: String? = nil) -> UserProfile? {
+        let resolvedEmail = email ?? currentUserEmail
+        guard let resolvedEmail else { return nil }
+
+        let fallbackName = resolvedEmail.components(separatedBy: "@").first ?? "Obese Food User"
+        let resolvedName = displayName ?? currentUserName ?? fallbackName
+
+        return UserProfile(
+            id: userID,
+            name: resolvedName.isEmpty ? fallbackName : resolvedName,
+            email: resolvedEmail
+        )
+    }
+
+    private func clearPublishedState() {
+        userProfile = nil
+        foodScanHistory = []
+    }
+
+    private func storageKey(for baseKey: String, userID: String?) -> String {
+        "\(baseKey)_\(userID ?? "signed_out")"
     }
 }
 

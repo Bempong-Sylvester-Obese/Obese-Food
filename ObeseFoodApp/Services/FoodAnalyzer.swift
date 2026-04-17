@@ -1,102 +1,135 @@
 import Foundation
 import UIKit
-import Vision
-import CoreML
 
-class FoodAnalyzer: ObservableObject {
-    @Published var predictionResult: String = ""
-    @Published var isAnalyzing: Bool = false
-    @Published var confidence: Float = 0.0
-    @Published var detectedFood: String = ""
-    
-    private var coreMLModel: VNCoreMLModel?
-    
+struct FoodAnalysis: Identifiable, Equatable {
+    let id = UUID()
+    let foodName: String
+    let confidence: Double
+    let nutrition: FoodNutritionProfile?
+    let isLowConfidence: Bool
+    let wasManuallyAdjusted: Bool
+    let classProbabilities: [String: Double]
+
+    var reviewMessage: String {
+        if wasManuallyAdjusted {
+            return "Using your selected food match."
+        }
+
+        if isLowConfidence {
+            return "Confidence is low, so review the meal before saving it."
+        }
+
+        return "Confidence looks strong for this supported meal."
+    }
+
+    var formattedResult: String {
+        let percentage = Int((confidence * 100).rounded())
+        return "\(foodName) • \(percentage)% confidence"
+    }
+}
+
+final class FoodAnalyzer: ObservableObject {
+    @Published var predictionResult = ""
+    @Published var isAnalyzing = false
+    @Published var confidence = 0.0
+    @Published var detectedFood = ""
+    @Published var latestAnalysis: FoodAnalysis?
+    @Published var lastErrorMessage: String?
+
+    private var recognitionModel: FoodRecognitionModel?
+    private var errorHandler: ErrorHandler?
+
     init() {
         setupModel()
     }
-    
-    private func setupModel() {
-        // Load the mock food recognition model
-        do {
-            let foodModel = FoodRecognitionModel()
-            self.coreMLModel = try VNCoreMLModel(for: foodModel.model)
-        } catch {
-            print("Failed to load CoreML model: \(error)")
-        }
+
+    func setErrorHandler(_ errorHandler: ErrorHandler) {
+        self.errorHandler = errorHandler
     }
-    
+
     func analyzeFood(image: UIImage) {
-        guard let cgImage = image.cgImage else {
-            predictionResult = "Invalid image"
-            return
-        }
-        
         isAnalyzing = true
-        predictionResult = "Analyzing..."
-        
-        // Use the mock CoreML model for now
-        if let model = coreMLModel {
-            analyzeWithCoreML(image: image)
-        } else {
-            // Fallback to simulation if model fails
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                self.simulateAnalysis()
+        latestAnalysis = nil
+        lastErrorMessage = nil
+        predictionResult = "Analyzing your meal..."
+        confidence = 0
+        detectedFood = ""
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+
+            do {
+                guard let recognitionModel = self.recognitionModel else {
+                    throw FoodRecognitionError.missingModel(FoodRecognitionModel.modelName)
+                }
+
+                let prediction = try recognitionModel.predict(image: image)
+                let nutrition = FoodCatalog.profile(for: prediction.foodName)
+                let isLowConfidence = prediction.foodName == FoodCatalog.unknownFoodName || prediction.confidence < 0.6 || nutrition == nil
+
+                let analysis = FoodAnalysis(
+                    foodName: nutrition?.foodName ?? prediction.foodName,
+                    confidence: prediction.confidence,
+                    nutrition: nutrition,
+                    isLowConfidence: isLowConfidence,
+                    wasManuallyAdjusted: false,
+                    classProbabilities: prediction.classProbabilities
+                )
+
+                DispatchQueue.main.async {
+                    self.apply(analysis)
+                    self.isAnalyzing = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.isAnalyzing = false
+                    self.latestAnalysis = nil
+                    self.predictionResult = "We couldn't analyze that image."
+                    self.lastErrorMessage = error.localizedDescription
+                    self.errorHandler?.handle(.foodAnalysisError(error.localizedDescription))
+                }
             }
         }
     }
-    
-    private func simulateAnalysis() {
-        // Simulate food detection results
-        let sampleFoods = ["Jollof Rice", "Waakye", "Banku", "Fufu", "Tilapia", "Plantain"]
-        let randomFood = sampleFoods.randomElement() ?? "Unknown Food"
-        let randomConfidence = Float.random(in: 0.7...0.95)
-        
-        DispatchQueue.main.async {
-            self.detectedFood = randomFood
-            self.confidence = randomConfidence
-            self.predictionResult = "Detected: \(randomFood) (Confidence: \(String(format: "%.1f", randomConfidence * 100))%)"
-            self.isAnalyzing = false
-        }
+
+    func applyManualSelection(_ foodName: String) {
+        guard let nutrition = FoodCatalog.profile(for: foodName) else { return }
+
+        let analysis = FoodAnalysis(
+            foodName: nutrition.foodName,
+            confidence: max(latestAnalysis?.confidence ?? 0.35, 0.35),
+            nutrition: nutrition,
+            isLowConfidence: false,
+            wasManuallyAdjusted: true,
+            classProbabilities: latestAnalysis?.classProbabilities ?? [:]
+        )
+
+        apply(analysis)
     }
-    
-    // Real implementation would use CoreML model
-    private func analyzeWithCoreML(image: UIImage) {
-        guard let model = coreMLModel else {
-            predictionResult = "Model not available"
-            isAnalyzing = false
-            return
-        }
-        
-        let request = VNCoreMLRequest(model: model) { [weak self] request, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self?.predictionResult = "Analysis failed: \(error.localizedDescription)"
-                    self?.isAnalyzing = false
-                    return
-                }
-                
-                guard let results = request.results as? [VNClassificationObservation],
-                      let topResult = results.first else {
-                    self?.predictionResult = "No food detected"
-                    self?.isAnalyzing = false
-                    return
-                }
-                
-                self?.detectedFood = topResult.identifier
-                self?.confidence = topResult.confidence
-                self?.predictionResult = "Detected: \(topResult.identifier) (Confidence: \(String(format: "%.1f", topResult.confidence * 100))%)"
-                self?.isAnalyzing = false
-            }
-        }
-        
-        let handler = VNImageRequestHandler(cgImage: image.cgImage!, options: [:])
+
+    func reset() {
+        predictionResult = ""
+        isAnalyzing = false
+        confidence = 0
+        detectedFood = ""
+        latestAnalysis = nil
+        lastErrorMessage = nil
+    }
+
+    private func setupModel() {
         do {
-            try handler.perform([request])
+            recognitionModel = try FoodRecognitionModel()
         } catch {
-            DispatchQueue.main.async {
-                self.predictionResult = "Analysis failed: \(error.localizedDescription)"
-                self.isAnalyzing = false
-            }
+            recognitionModel = nil
+            lastErrorMessage = error.localizedDescription
         }
+    }
+
+    private func apply(_ analysis: FoodAnalysis) {
+        latestAnalysis = analysis
+        detectedFood = analysis.foodName
+        confidence = analysis.confidence
+        predictionResult = analysis.formattedResult
+        lastErrorMessage = nil
     }
 }

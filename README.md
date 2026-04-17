@@ -1,157 +1,103 @@
-# Obese Food 🍏📱
+# Obese Food
 
-> **AI-Powered Food Recognition & Nutrition Tracking App**
+Obese Food is a SwiftUI iOS app for recognizing a small set of Ghanaian meals, attaching nutrition estimates, and syncing user progress with Firebase.
 
-Obese Food is an innovative iOS application that leverages **AI-powered food image recognition** to help users track and manage their nutrition. Simply take a photo of your meal and instantly receive detailed nutritional insights. The app promotes healthy eating habits through a gamified system where users earn **Oex points** for meeting their dietary goals.
+## MVP Status
 
-## ✨ Key Features
+The current repo is set up for an MVP, not a full production release yet.
 
-### 🍽️ **Smart Food Recognition**
-- **AI-Powered Analysis**: Uses CoreML and Vision framework for accurate food detection
-- **Instant Results**: Get nutritional breakdown within seconds
-- **Ghanaian Cuisine Support**: Optimized for local dishes like Jollof Rice, Waakye, Banku, and Fufu
+What works now:
+- Email/password authentication with Firebase Auth
+- On-device meal analysis using a bundled CoreML model
+- Nutrition history saved locally and synced to Firestore
+- Editable profile and calorie-goal data
+- Gamification progress with streaks, points, and achievements
+- Low-confidence fallback that lets the user choose a supported meal manually
 
-### 📊 **Nutritional Insights**
-- **Calorie Tracking**: Monitor daily calorie intake
-- **Macro Breakdown**: Detailed protein, fat, and carbohydrate analysis
-- **Health Metrics**: Track sugar content and nutritional values
+Supported dishes in the baseline classifier:
+- `Jollof Rice`
+- `Waakye`
+- `Banku and Tilapia`
+- `Fufu and Light Soup`
 
-### 🎮 **Gamification System**
-- **Oex Points**: Earn rewards for healthy eating choices
-- **Achievement Levels**: Progress through different tiers
-- **Goal Setting**: Set and track dietary objectives
+## Tech Stack
 
-### 👤 **User Management**
-- **Profile Management**: Personalize your experience
-- **Dietary Preferences**: Set custom food preferences
-- **Activity Tracking**: Monitor health goals and activity levels
+- iOS: Swift, SwiftUI, Combine
+- ML: CoreML
+- Backend: Firebase Auth and Firestore
+- CI: GitHub Actions with `xcodebuild`
+- Local tooling: Python script for regenerating the baseline model
 
-## 🛠️ Technology Stack
+## Repo Layout
 
-| Component | Technology |
-|-----------|------------|
-| **Frontend** | Swift + SwiftUI |
-| **Backend** | Firebase (Firestore, Authentication, Storage) |
-| **AI/ML** | CoreML, Vision Framework |
-| **Cloud Functions** | Node.js (Firebase Functions) |
-| **Image Processing** | Google Cloud Vision API |
-
-## 📱 App Structure
-
-```
-ObeseFood/
-├── Views/
-│   ├── HomeView.swift          # Main camera and analysis interface
-│   ├── NutritionView.swift     # Nutritional statistics and food database
-│   └── ProfileView.swift       # User profile and settings
-├── Models/
-│   ├── FoodModel.swift         # Food data structure
-│   └── UserModel.swift         # User data structure
-├── Services/
-│   ├── AIRecognition.swift     # AI food recognition service
-│   └── FirebaseService.swift   # Firebase integration
-└── Backend/
-    └── analyzeFood.js          # Cloud function for image analysis
+```text
+Obese-Food/
+├── ObeseFoodApp/                 # iOS app source
+├── ObeseFoodApp.xcodeproj/       # Xcode project
+├── ObeseFoodAppTests/            # Unit tests
+├── docs/                         # Setup and architecture notes
+├── scripts/                      # Utility scripts
+├── firebase.json                 # Firebase CLI config
+├── firestore.rules               # Firestore security rules
+├── firestore.indexes.json        # Firestore composite indexes
+└── .github/workflows/ios.yml     # CI workflow
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
-### Prerequisites
-- Xcode 13.0+
-- iOS 13.0+
-- Firebase account
-- Google Cloud Vision API access
+### Requirements
 
-### Installation
-1. Clone the repository
-   ```bash
-   git clone https://github.com/Bempong-Sylvester-Obese/Obese-Food.git
-   cd Obese-Food
-   ```
+- Xcode 15+
+- iOS 14+
+- A Firebase project with Auth and Firestore enabled
 
-2. Install dependencies
-   ```bash
-   # Swift Package Manager dependencies are handled by Xcode
-   ```
+### Local Setup
 
-3. Configure Firebase
-   - Add your `GoogleService-Info.plist` to the project
-   - Configure Firebase Authentication and Firestore
-
-4. Build and run
-   ```bash
-   open ObeseFoodApp.xcodeproj
-   ```
-
-## 🔧 Configuration
+1. Clone the repo.
+2. Copy `ObeseFoodApp/GoogleService-Info.sample.plist` to `ObeseFoodApp/GoogleService-Info.plist`.
+3. Replace the placeholder values in `GoogleService-Info.plist` with your Firebase app config.
+4. Open `ObeseFoodApp.xcodeproj` in Xcode.
+5. Let Swift Package Manager resolve the Firebase dependencies.
+6. Build and run the `ObeseFoodApp` scheme.
 
 ### Firebase Setup
-1. Create a new Firebase project
-2. Enable Authentication, Firestore, and Storage
-3. Download `GoogleService-Info.plist` and add to project
-4. Configure security rules for Firestore
 
-### AI Model Configuration
-- Ensure CoreML model is properly integrated
-- Configure Vision framework permissions
-- Set up Google Cloud Vision API credentials
+1. Enable Email/Password authentication.
+2. Create a Firestore database.
+3. Deploy the included rules and indexes:
 
-## 📊 Features in Detail
+```bash
+firebase deploy --only firestore:rules,firestore:indexes
+```
 
-### Food Recognition
-- **Real-time Analysis**: Process images instantly using CoreML
-- **Accuracy**: Trained on diverse food datasets
-- **Local Processing**: Privacy-focused on-device analysis
+## Model Regeneration
 
-### Data Management
-- **Cloud Storage**: Secure data storage with Firebase
-- **Offline Support**: Local caching for offline access
-- **Sync**: Automatic data synchronization across devices
+The repository includes a baseline CoreML model at `ObeseFoodApp/BaselineFoodClassifier.mlmodel`.
 
-## 🎯 Future Roadmap
+If you change the engineered features or supported dishes, regenerate it with:
 
-### Phase 1 (Current)
-- ✅ Basic food recognition
-- ✅ Nutritional tracking
-- ✅ User profiles
-- ✅ Firebase integration
+```bash
+python3.11 -m venv .venv-modelgen
+.venv-modelgen/bin/pip install coremltools scikit-learn==1.5.1
+.venv-modelgen/bin/python scripts/generate_baseline_food_model.py
+```
 
-### Phase 2 (Planned)
-- 📱 Android version development
-- 🧠 Advanced AI meal planning
-- 🌍 Social features and leaderboards
-- 📈 Advanced analytics and insights
+## Current Limitations
 
-### Phase 3 (Future)
-- 🤖 Personalized AI recommendations
-- 🏥 Healthcare provider integration
-- 🌐 Multi-language support
-- 📊 Advanced health metrics
+- The bundled classifier is a small baseline model tuned for the supported MVP dishes only.
+- Profile images are not uploaded to Firebase Storage yet.
+- Firebase Functions and richer nutrition enrichment are not implemented yet.
+- CI uses a placeholder Firebase plist for build and unit-test coverage.
 
-## 🤝 Contributing
+## Documentation
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+- [Setup Guide](docs/SETUP.md)
+- [Architecture](docs/architecture.md)
+- [Next Steps](docs/NEXT_STEPS.md)
+- [Contributing](CONTRIBUTING.md)
 
-### How to Contribute
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## License
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
----
-<div align="center">
-
-**Made with ❤️ for healthier eating habits**
-
-[![Swift](https://img.shields.io/badge/Swift-5.0-orange.svg)](https://swift.org)
-[![iOS](https://img.shields.io/badge/iOS-13.0+-blue.svg)](https://developer.apple.com/ios/)
-[![Firebase](https://img.shields.io/badge/Firebase-Latest-yellow.svg)](https://firebase.google.com)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-</div>
+MIT. See [LICENSE](LICENSE).
 
 

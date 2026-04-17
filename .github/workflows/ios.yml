@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: iOS
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Firebase config placeholder
+        run: |
+          if [ ! -f "ObeseFoodApp/GoogleService-Info.plist" ]; then
+            cp "ObeseFoodApp/GoogleService-Info.sample.plist" "ObeseFoodApp/GoogleService-Info.plist"
+          fi
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project "ObeseFoodApp.xcodeproj"
+
+      - name: Build and run unit tests
+        run: |
+          xcodebuild \
+            -project "ObeseFoodApp.xcodeproj" \
+            -scheme "ObeseFoodApp" \
+            -destination "platform=iOS Simulator,OS=latest,name=iPhone 16" \
+            CODE_SIGNING_ALLOWED=NO \
+            clean test

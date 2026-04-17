@@ -4,8 +4,6 @@ struct ProfileView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @EnvironmentObject var gamificationManager: GamificationManager
     @EnvironmentObject var dataManager: DataManager
-    @State private var profileImage: UIImage? = UIImage(systemName: "person.circle.fill")
-    @State private var showImagePicker = false
     @State private var showEditProfile = false
     @State private var showNutritionGoals = false
     @State private var showAchievements = false
@@ -16,18 +14,11 @@ struct ProfileView: View {
             VStack(spacing: 20) {
                 // Profile Header
                 VStack(spacing: 16) {
-                    // Profile Image
-                    if let image = profileImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 120, height: 120)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.green, lineWidth: 3))
-                            .onTapGesture {
-                                showImagePicker = true
-                            }
-                    }
+                    Image(systemName: "person.crop.circle.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120, height: 120)
+                        .foregroundColor(.green)
                     
                     // User Info
                     VStack(spacing: 4) {
@@ -41,6 +32,38 @@ struct ProfileView: View {
                     }
                 }
                 .padding(.top)
+
+                if let profile = dataManager.userProfile {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Current Goals")
+                            .font(.headline)
+
+                        HStack {
+                            Text("Calorie Goal")
+                            Spacer()
+                            Text("\(profile.dailyCalorieGoal) kcal")
+                                .fontWeight(.semibold)
+                        }
+
+                        HStack {
+                            Text("Activity Level")
+                            Spacer()
+                            Text(profile.activityLevel)
+                                .fontWeight(.semibold)
+                        }
+
+                        HStack {
+                            Text("Health Goal")
+                            Spacer()
+                            Text(profile.healthGoals)
+                                .fontWeight(.semibold)
+                        }
+                    }
+                    .padding()
+                    .background(Color.green.opacity(0.08))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                }
                 
                 // Gamification Stats
                 VStack(spacing: 16) {
@@ -110,9 +133,6 @@ struct ProfileView: View {
             }
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $showImagePicker) {
-                ImagePicker(image: $profileImage)
-            }
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView()
             }
@@ -160,5 +180,8 @@ struct ProfileOptionRow: View {
 struct ProfileView_Previews: PreviewProvider {
     static var previews: some View {
         ProfileView()
+            .environmentObject(AuthenticationManager())
+            .environmentObject(GamificationManager())
+            .environmentObject(DataManager())
     }
 }

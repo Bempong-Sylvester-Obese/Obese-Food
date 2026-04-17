@@ -1,20 +1,19 @@
-import Foundation
-import Firebase
+import FirebaseCore
 import FirebaseAuth
-import Combine
+import Foundation
 
-class AuthenticationManager: ObservableObject {
+final class AuthenticationManager: ObservableObject {
     @Published var isAuthenticated = false
-    @Published var currentUser: User?
+    @Published var currentUser: FirebaseAuth.User?
     @Published var isLoading = false
     @Published var errorMessage: String?
     
     private var errorHandler: ErrorHandler?
     
-    private var cancellables = Set<AnyCancellable>()
-    
     init() {
-        checkAuthenticationStatus()
+        if FirebaseApp.app() != nil {
+            checkAuthenticationStatus()
+        }
     }
     
     func setErrorHandler(_ errorHandler: ErrorHandler) {
@@ -31,6 +30,7 @@ class AuthenticationManager: ObservableObject {
     }
     
     func signIn(email: String, password: String) {
+        guard ensureFirebaseIsConfigured() else { return }
         isLoading = true
         errorMessage = nil
         
@@ -49,6 +49,7 @@ class AuthenticationManager: ObservableObject {
     }
     
     func signUp(email: String, password: String, name: String) {
+        guard ensureFirebaseIsConfigured() else { return }
         isLoading = true
         errorMessage = nil
         
@@ -81,6 +82,7 @@ class AuthenticationManager: ObservableObject {
     }
     
     func signOut() {
+        guard ensureFirebaseIsConfigured() else { return }
         do {
             try Auth.auth().signOut()
             isAuthenticated = false
@@ -92,6 +94,7 @@ class AuthenticationManager: ObservableObject {
     }
     
     func resetPassword(email: String) {
+        guard ensureFirebaseIsConfigured() else { return }
         Auth.auth().sendPasswordReset(withEmail: email) { [weak self] error in
             DispatchQueue.main.async {
                 if let error = error {
@@ -102,5 +105,17 @@ class AuthenticationManager: ObservableObject {
                 }
             }
         }
+    }
+
+    @discardableResult
+    private func ensureFirebaseIsConfigured() -> Bool {
+        guard FirebaseApp.app() != nil else {
+            let message = "Firebase isn't configured. Add GoogleService-Info.plist before using authentication."
+            errorMessage = message
+            errorHandler?.handle(.firebaseError(message))
+            return false
+        }
+
+        return true
     }
 }

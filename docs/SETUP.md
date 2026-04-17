@@ -1,194 +1,105 @@
-# Obese Food App - Setup Guide
+# Obese Food Setup Guide
 
-## 🚀 Quick Start
+This guide covers the current MVP repo layout and the minimum setup needed to run the app locally.
 
-This guide will help you set up the Obese Food app for development and deployment.
+## Requirements
 
-## 📋 Prerequisites
+- Xcode 15 or newer
+- iOS 14 simulator or device
+- A Firebase project
+- Apple developer signing set up in Xcode if you want to run on a device
 
-- **Xcode 13.0+** (for iOS development)
-- **iOS 13.0+** target device or simulator
-- **Firebase account** (free tier available)
-- **Apple Developer account** (for device testing and App Store deployment)
+## 1. Firebase Project
 
-## 🔧 Setup Steps
+Create a Firebase project and enable:
 
-### 1. Firebase Configuration
+- Authentication with Email/Password
+- Firestore Database
 
-1. **Create Firebase Project**
-   - Go to [Firebase Console](https://console.firebase.google.com/)
-   - Click "Create a project"
-   - Name it "Obese Food" or similar
-   - Enable Google Analytics (recommended)
+Storage and Functions are not required for the current MVP flow.
 
-2. **Add iOS App to Firebase**
-   - Click "Add app" and select iOS
-   - Bundle ID: `com.obesefood.app` (or your preferred bundle ID)
-   - Download `GoogleService-Info.plist`
-   - Replace the placeholder file in `firebase/GoogleService-Info.plist`
+## 2. Add the iOS App in Firebase
 
-3. **Enable Firebase Services**
-   - **Authentication**: Enable Email/Password and Google Sign-In
-   - **Firestore Database**: Create database in production mode
-   - **Storage**: Enable for image uploads
-   - **Functions**: Enable for server-side processing
+Register an iOS app with bundle identifier:
 
-### 2. Xcode Project Setup
+`com.obesefood.app`
 
-1. **Open the project**
-   ```bash
-   cd /Users/sylvesterbempong/Desktop/Projects/Obese-Food
-   open ObeseFoodApp.xcodeproj
-   ```
+Then download `GoogleService-Info.plist`.
 
-2. **Configure Bundle Identifier**
-   - Select your project in Xcode
-   - Go to "Signing & Capabilities"
-   - Set your team and bundle identifier
+## 3. Configure the Local Repo
 
-3. **Add Firebase Configuration**
-   - Drag `GoogleService-Info.plist` into your Xcode project
-   - Make sure it's added to the target
+From the repo root:
 
-### 3. Dependencies
+```bash
+cp ObeseFoodApp/GoogleService-Info.sample.plist ObeseFoodApp/GoogleService-Info.plist
+```
 
-The project uses Swift Package Manager. Dependencies will be resolved automatically when you build the project.
+Replace the placeholder values in `ObeseFoodApp/GoogleService-Info.plist` with the real Firebase config you downloaded.
 
-**Current Dependencies:**
-- Firebase iOS SDK (Authentication, Firestore, Storage, Functions)
+## 4. Open the Project
 
-### 4. Build and Run
+```bash
+open ObeseFoodApp.xcodeproj
+```
 
-1. **Select Target Device**
-   - Choose iOS Simulator or connected device
-   - Minimum iOS 13.0
+When Xcode opens:
 
-2. **Build Project**
-   - Press `Cmd + B` to build
-   - Press `Cmd + R` to run
+1. Let Swift Package Manager resolve the Firebase packages.
+2. Confirm the `ObeseFoodApp` scheme is selected.
+3. Choose an iOS 14+ simulator or device.
 
-## 🛠️ Development Features
+## 5. Firestore Rules and Indexes
 
-### ✅ Implemented Features
+This repo now includes:
 
-- **Authentication System**: Email/password sign-up and sign-in
-- **Food Recognition**: Basic image analysis (simulated)
-- **Gamification**: Oex points system with levels and achievements
-- **User Profiles**: Profile management with image upload
-- **Navigation**: Tab-based navigation between main screens
-- **Nutrition Tracking**: Basic nutrition information display
+- `firebase.json`
+- `firestore.rules`
+- `firestore.indexes.json`
 
-### 🔄 Current Limitations
+Deploy them with:
 
-- **AI Model**: Currently using simulated food recognition
-- **Real-time Analysis**: No actual CoreML model integration
-- **Data Persistence**: Limited to UserDefaults for gamification
-- **Offline Support**: No offline data caching
+```bash
+firebase deploy --only firestore:rules,firestore:indexes
+```
 
-## 🎯 Next Development Steps
+The included index supports the app query that filters `foodScans` by `userId` and orders by `timestamp`.
 
-### Phase 1: Core AI Integration
-1. **Train CoreML Model**
-   - Collect food image dataset
-   - Train model for Ghanaian cuisine recognition
-   - Integrate trained model into app
+## 6. Run the App
 
-2. **Real Food Recognition**
-   - Replace simulation with actual CoreML analysis
-   - Add confidence thresholds
-   - Implement fallback to Google Vision API
+The main MVP flow is:
 
-### Phase 2: Enhanced Features
-1. **Data Persistence**
-   - Implement CoreData for local storage
-   - Add Firebase Firestore integration
-   - Sync data across devices
+1. Sign up or sign in
+2. Pick a meal image from the photo library
+3. Run the on-device classifier
+4. Review or manually correct the predicted meal
+5. Save the scan to history
 
-2. **Advanced Gamification**
-   - Add more achievement types
-   - Implement social features
-   - Create leaderboards
+## 7. Regenerate the Baseline Model
 
-### Phase 3: Production Ready
-1. **Testing**
-   - Unit tests for core functionality
-   - UI tests for user flows
-   - Integration tests for Firebase
+If you change the feature extraction logic or supported dishes:
 
-2. **Performance Optimization**
-   - Image compression and caching
-   - Efficient data loading
-   - Background processing
+```bash
+python3.11 -m venv .venv-modelgen
+.venv-modelgen/bin/pip install coremltools scikit-learn==1.5.1
+.venv-modelgen/bin/python scripts/generate_baseline_food_model.py
+```
 
-## 🐛 Troubleshooting
+That updates `ObeseFoodApp/BaselineFoodClassifier.mlmodel`.
 
-### Common Issues
+## Troubleshooting
 
-1. **Build Errors**
-   - Ensure all dependencies are resolved
-   - Check bundle identifier matches Firebase config
-   - Verify iOS deployment target is 13.0+
+### Build fails because `GoogleService-Info.plist` is missing
 
-2. **Firebase Connection Issues**
-   - Verify `GoogleService-Info.plist` is in project
-   - Check Firebase project configuration
-   - Ensure proper bundle ID matching
+Make sure `ObeseFoodApp/GoogleService-Info.plist` exists locally. The sample plist is only a template.
 
-3. **Authentication Issues**
-   - Verify Firebase Auth is enabled
-   - Check email/password authentication is enabled
-   - Test with valid email addresses
+### Firebase auth or Firestore calls fail
 
-### Getting Help
+Check:
 
-- Check the [Firebase Documentation](https://firebase.google.com/docs)
-- Review [SwiftUI Documentation](https://developer.apple.com/documentation/swiftui)
-- Check project issues in the repository
+- the Firebase bundle ID matches `com.obesefood.app`
+- Email/Password auth is enabled
+- Firestore rules and indexes are deployed
 
-## 📱 Testing
+### `xcodebuild` fails locally before the project compiles
 
-### Simulator Testing
-- Use iOS Simulator for basic functionality testing
-- Test different screen sizes and orientations
-- Verify navigation and UI responsiveness
-
-### Device Testing
-- Test on physical device for camera functionality
-- Verify image picker works correctly
-- Test authentication flows
-
-## 🚀 Deployment
-
-### App Store Preparation
-1. **App Store Connect Setup**
-   - Create app listing
-   - Add app description and screenshots
-   - Set up pricing and availability
-
-2. **Build for Distribution**
-   - Archive the app in Xcode
-   - Upload to App Store Connect
-   - Submit for review
-
-### Firebase Hosting (Optional)
-- Deploy Firebase Functions
-- Set up custom domain
-- Configure security rules
-
-## 📊 Analytics and Monitoring
-
-### Firebase Analytics
-- Track user engagement
-- Monitor app performance
-- Analyze user behavior
-
-### Crashlytics (Recommended)
-- Add Firebase Crashlytics
-- Monitor app crashes
-- Get detailed crash reports
-
----
-
-**Happy Coding! 🎉**
-
-For questions or issues, please check the project documentation or create an issue in the repository.
+If your local Xcode installation reports missing first-launch components, run the usual Xcode setup on your machine before retrying.

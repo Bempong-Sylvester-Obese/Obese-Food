@@ -52,7 +52,7 @@ struct AuthenticationView: View {
                     // Error Message
                     if let errorMessage = authManager.errorMessage {
                         Text(errorMessage)
-                            .foregroundColor(.red)
+                            .foregroundColor(errorMessage == "Password reset email sent" ? .green : .red)
                             .font(.caption)
                     }
                     
