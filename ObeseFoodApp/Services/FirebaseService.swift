@@ -1,6 +1,5 @@
 import Foundation
 import FirebaseFirestore
-import FirebaseFirestoreSwift
 
 /// A service class that handles all Firebase Firestore operations for the Obese Food application.
 /// This class provides methods for managing user and food data in the Firestore database.

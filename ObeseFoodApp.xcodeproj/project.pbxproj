@@ -36,7 +36,6 @@
 		A1234567890ABCDEF035 /* NutritionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890ABCDEF036 /* NutritionView.swift */; };
 		A1234567890ABCDEF037 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890ABCDEF038 /* ProfileView.swift */; };
 		A1234567890ABCDEF039 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890ABCDEF03A /* SettingsView.swift */; };
-		A1234567890ABCDEF045 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A1234567890ABCDEF060 /* FirebaseFirestoreSwift */; };
 		A1234567890ABCDEF047 /* FoodCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890ABCDEF048 /* FoodCatalog.swift */; };
 		A1234567890ABCDEF049 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890ABCDEF04A /* AppSettings.swift */; };
 		A1234567890ABCDEF04B /* BaselineFoodClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890ABCDEF04C /* BaselineFoodClassifier.mlmodel */; settings = {ATTRIBUTES = (no_codegen, ); }; };
@@ -98,7 +97,6 @@
 			files = (
 				A1234567890ABCDEF00A /* FirebaseAuth in Frameworks */,
 				A1234567890ABCDEF00C /* FirebaseFirestore in Frameworks */,
-				A1234567890ABCDEF045 /* FirebaseFirestoreSwift in Frameworks */,
 				A1234567890ABCDEF00E /* FirebaseStorage in Frameworks */,
 				A1234567890ABCDEF010 /* FirebaseFunctions in Frameworks */,
 			);
@@ -245,7 +243,6 @@
 			packageProductDependencies = (
 				A1234567890ABCDEF009 /* FirebaseAuth */,
 				A1234567890ABCDEF00B /* FirebaseFirestore */,
-				A1234567890ABCDEF060 /* FirebaseFirestoreSwift */,
 				A1234567890ABCDEF00D /* FirebaseStorage */,
 				A1234567890ABCDEF00F /* FirebaseFunctions */,
 			);
@@ -666,11 +663,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A1234567890ABCDEF040 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
-		};
-		A1234567890ABCDEF060 /* FirebaseFirestoreSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A1234567890ABCDEF040 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestoreSwift;
 		};
 		A1234567890ABCDEF00D /* FirebaseStorage */ = {
 			isa = XCSwiftPackageProductDependency;

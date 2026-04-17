@@ -22,7 +22,7 @@ jobs:
           fi
 
       - name: Resolve Swift packages
-        run: xcodebuild -resolvePackageDependencies -project "ObeseFoodApp.xcodeproj"
+        run: xcodebuild -resolvePackageDependencies -project "ObeseFoodApp.xcodeproj" -scheme "ObeseFoodApp"
 
       - name: Build and run unit tests
         run: |

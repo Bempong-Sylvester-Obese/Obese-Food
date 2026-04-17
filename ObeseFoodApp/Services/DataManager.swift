@@ -1,7 +1,6 @@
 import FirebaseAuth
 import FirebaseCore
 import FirebaseFirestore
-import FirebaseFirestoreSwift
 import Foundation
 
 /// Centralized data management for the Obese Food app

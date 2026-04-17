@@ -1,6 +1,5 @@
 import FirebaseCore
 import FirebaseFirestore
-import FirebaseFirestoreSwift
 import Foundation
 
 final class GamificationManager: ObservableObject {
